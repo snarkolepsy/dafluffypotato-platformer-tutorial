@@ -12,6 +12,7 @@ class Game:
         pygame.display.set_caption('Ninja Game')
         # Set output window resolution
         self.screen = pygame.display.set_mode((640, 480))
+        self.display = pygame.Surface((320, 240))
 
         self.clock = pygame.time.Clock()
 
@@ -26,13 +27,13 @@ class Game:
     def run(self):
         while True:
             # Clearing the screen
-            self.screen.fill((14, 219, 248))  # RGB for sky blue
+            self.display.fill((14, 219, 248))  # RGB for sky blue
 
             # Calculate the horizontal movement vector
             self.player.update((self.movement[1] - self.movement[0], 0)) # in a platformer you move left to right
 
             # Rendering the moveable player sprite
-            self.player.render(self.screen)
+            self.player.render(self.display)
 
             # Event-handling logic
             for event in pygame.event.get():
@@ -50,6 +51,9 @@ class Game:
                         self.movement[0] = False
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = False
+
+            # scaling up the display to the screen size
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0,))
 
             pygame.display.update()
             self.clock.tick(60)  # ensures 60 FPS
