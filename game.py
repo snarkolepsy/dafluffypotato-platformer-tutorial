@@ -54,12 +54,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == pygame.KEYDOWN:  # Pressing a key
+                if event.type == pygame.KEYDOWN: # Pressing a key
                     if event.key == pygame.K_LEFT:
                         self.movement[0] = True
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = True
-                if event.type == pygame.KEYUP:  # Releasing a key
+                    if event.key == pygame.K_UP: # Jumping with the up key
+                        self.player.velocity[1] = -3
+                if event.type == pygame.KEYUP: # Releasing a key
                     if event.key ==  pygame.K_LEFT:
                         self.movement[0] = False
                     if event.key == pygame.K_RIGHT:
