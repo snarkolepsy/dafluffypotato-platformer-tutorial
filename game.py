@@ -1,6 +1,5 @@
 import sys
 import pygame
-from pygame.examples.scroll import scroll_view
 
 from scripts.utils import load_image, load_images, Animation
 from scripts.entities import PhysicsEntity, Player

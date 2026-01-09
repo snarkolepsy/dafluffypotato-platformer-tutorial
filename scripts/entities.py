@@ -102,4 +102,3 @@ class Player(PhysicsEntity):
             self.set_action('run')
         else: # Or we might not be moving at all
             self.set_action('idle')
-
