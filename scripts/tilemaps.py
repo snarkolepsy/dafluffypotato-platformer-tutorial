@@ -11,13 +11,6 @@ class Tilemap:
         self.tilemap = {}
         self.offgrid_tiles = [] # will be relevant in the level editor portion of the class later
 
-        # EXAMPLE: a tilemap containing a row of horizontal grass tiles and the column of vertical stone tiles
-        for i in range(10):
-            # grass/1.png from grid position (x;y) 3;10 to 12;10
-            self.tilemap[str(i + 3) + ';10'] = {'type' : 'grass', 'variant' : 1, 'pos' : (i + 3, 10)}
-            # stone/1.png from grid position (x;y) 10;5 to 10;14
-            self.tilemap['10;' + str(i + 5)] = {'type' : 'stone', 'variant' : 1, 'pos' : (10, i + 5)}
-
     def tiles_around(self, pos):
         """List the details of the surrounding tiles
 
