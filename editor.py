@@ -23,6 +23,12 @@ class Editor:
         }
         self.tilemap = Tilemap(self, tile_size=16)
 
+        # Loading a pre-existing saved tilemap, if it exists
+        try:
+            self.tilemap.load('map.json')
+        except FileNotFoundError:
+            pass
+
         # Need a method for moving the camera around in x and y axes
         self.movement = [False, False, False, False] # left, right, up, down
         self.scroll = [0, 0]
@@ -128,6 +134,8 @@ class Editor:
                         self.movement[3] = True
                     if event.key == pygame.K_g:
                         self.ongrid = not self.ongrid
+                    if event.key == pygame.K_o:
+                        self.tilemap.save('map.json')
                     if event.key == pygame.K_LSHIFT:
                         self.shift = True
                 if event.type == pygame.KEYUP: # Releasing arrow keys stops camera motion
