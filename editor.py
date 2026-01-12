@@ -134,6 +134,8 @@ class Editor:
                         self.movement[3] = True
                     if event.key == pygame.K_g:
                         self.ongrid = not self.ongrid
+                    if event.key == pygame.K_t:
+                        self.tilemap.autotile()
                     if event.key == pygame.K_o:
                         self.tilemap.save('map.json')
                     if event.key == pygame.K_LSHIFT:
