@@ -44,6 +44,9 @@ class Game:
 
         self.tilemap = Tilemap(self, tile_size=16)
 
+        # TEMPORARY: load the map we made to playtest
+        self.tilemap.load('map.json')
+
         # Scrolling and camera handling
         self.scroll = [0, 0]
 

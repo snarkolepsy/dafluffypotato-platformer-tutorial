@@ -24,7 +24,7 @@ class Tilemap:
         self.game = game
         self.tile_size = tile_size
         self.tilemap = {}
-        self.offgrid_tiles = [] # will be relevant in the level editor portion of the class later
+        self.offgrid_tiles = []
 
     def tiles_around(self, pos):
         """List the details of the surrounding tiles
