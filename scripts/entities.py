@@ -1,7 +1,12 @@
+import math
+import random
 import pygame
+
+from scripts.particles import Particle
 
 class PhysicsEntity:
     def __init__(self, game, e_type, pos, size):
+        """Initialize the PhysicsEntity object"""
         self.game = game
         self.type = e_type
         self.pos = list(pos) # using a list instead of a tuple for some reason
@@ -91,19 +96,22 @@ class PhysicsEntity:
 
 class Player(PhysicsEntity):
     def __init__(self, game, pos, size):
+        """Initialize the Player object"""
         super().__init__(game, 'player', pos, size)
         self.air_time = 0
         self.jumps = 1
         self.wall_slide = False
+        self.dashing = 0
 
     def update(self, tilemap, movement=(0, 0)):
+        """Update the Player's movement and sprite"""
         super().update(tilemap, movement=movement)
         self.air_time += 1
         if self.collisions['down']: # If we collide with the ground, air_time and jumps counter are reset
             self.air_time = 0
             self.jumps = 1
 
-        # Wall-sliding logic
+        # WALL-SLIDING LOGIC
         self.wall_slide = False
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
             self.wall_slide = True
@@ -125,11 +133,36 @@ class Player(PhysicsEntity):
             else: # Or we might not be moving at all
                 self.set_action('idle')
 
+        # DASHING LOGIC
+        # Spawning the burst of particles effect during the first ten frames of the dashing animation
+        if abs(self.dashing) in {60, 50}:
+            for i in range(20):
+                angle = random.random() * math.pi * 2
+                speed = random.random() * 0.5 + 0.5
+                pvelocity = [math.cos(angle) * speed, math.sin(angle) * speed]
+                self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvelocity, frame=random.randint(0, 7)))
+        # Gradually bring the dashing speed back down to zero from either direction
+        if self.dashing > 0:
+            self.dashing = max(0, self.dashing - 1)
+        if self.dashing < 0:
+            self.dashing = min(0, self.dashing + 1)
+        # Generate a stream of particles effect along the path of the dash animation
+        if abs(self.dashing) > 50:
+            self.velocity[0] = abs(self.dashing) / self.dashing * 8
+            if abs(self.dashing) == 51:
+                self.velocity[0] *= 0.1
+            pvelocity = [abs(self.dashing) / self.dashing * random.random() * 3, 0]
+            self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=pvelocity, frame=random.randint(0, 7)))
+
         # Reduce horizontal speed down to zero over time from either direction (like friction or air resistance)
         if self.velocity[0] > 0:
             self.velocity[0] = max(self.velocity[0] - 0.1, 0)
         else:
             self.velocity[0] = min(self.velocity[0] + 0.1, 0)
+
+    def render(self, surface, offset=(0, 0)):
+        if abs(self.dashing <= 50):
+            super().render(surface, offset=offset)
 
     def jump(self):
         """Jumping away from a wall we're sliding on or up from the ground
@@ -156,3 +189,11 @@ class Player(PhysicsEntity):
             self.jumps -= 1
             self.air_time = 5
             return True
+
+    def dash(self):
+        """Execute the Player dash attack"""
+        if not self.dashing:
+            if self.flip:
+                self.dashing = -60
+            else:
+                self.dashing = 60
