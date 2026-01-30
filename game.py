@@ -113,8 +113,10 @@ class Game:
             self.tilemap.render(self.display, offset=render_scroll)
 
             for enemy in self.enemies.copy():
-                enemy.update(self.tilemap, (0, 0))
+                kill = enemy.update(self.tilemap, (0, 0))
                 enemy.render(self.display, offset=render_scroll)
+                if kill:
+                    self.enemies.remove(enemy)
 
             # Calculate the horizontal movement vector and account for physics and collisions
             self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0)) # in a platformer you move left to right
@@ -138,7 +140,7 @@ class Game:
                     # Check whether Player is getting hit by the projectile
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
-                        for i in range(40):
+                        for i in range(30):
                             angle = random.random() * math.pi * 2
                             speed = random.random() * 5
                             self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
