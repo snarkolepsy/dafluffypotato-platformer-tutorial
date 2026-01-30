@@ -69,7 +69,8 @@ class Editor:
 
             # Previewing the tile we're about to put down
             if self.ongrid: # Snapped to the tile grid
-                self.display.blit(current_tile_img, (tile_pos[0] * self.tilemap.tile_size - self.scroll[0], tile_pos[1] * self.tilemap.tile_size - self.scroll[1]))
+                self.display.blit(current_tile_img,
+                                  (tile_pos[0] * self.tilemap.tile_size - self.scroll[0], tile_pos[1] * self.tilemap.tile_size - self.scroll[1]))
             else: # Unrestrained by the tile grid
                 self.display.blit(current_tile_img, mpos)
 

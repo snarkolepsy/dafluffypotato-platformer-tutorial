@@ -72,25 +72,30 @@ class Game:
         for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1)]):
             if spawner['variant'] == 0:
                 self.player.pos = spawner['pos']  # Player spawning position
+                self.player.air_time = 0 # Reset air time on respawn
             else:
                 self.enemies.append(Enemy(self, spawner['pos'], (8, 15)))
 
         # Projectile system
         self.projectiles = []
-
         # Particles system
         self.particles = []
-
         # Effects for getting shot and taking hits
         self.sparks = []
-
         # Scrolling and camera handling
         self.scroll = [0, 0]
+        # Handling player death
+        self.dead = 0
 
     def run(self):
         while True:
             # Clearing the screen
             self.display.blit(self.assets['background'], (0, 0))
+
+            if self.dead:
+                self.dead += 1
+                if self.dead > 40:
+                    self.load_level(0)
 
             # Move towards the player at a dynamic rate
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width()/2 - self.scroll[0]) / 30
@@ -118,18 +123,19 @@ class Game:
                 if kill:
                     self.enemies.remove(enemy)
 
-            # Calculate the horizontal movement vector and account for physics and collisions
-            self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0)) # in a platformer you move left to right
-
-            # Rendering the moveable player sprite
-            self.player.render(self.display, offset=render_scroll)
+            if not self.dead:
+                # Calculate the horizontal movement vector and account for physics and collisions
+                self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0)) # in a platformer you move left to right
+                # Rendering the moveable player sprite
+                self.player.render(self.display, offset=render_scroll)
 
             # Updating and drawing any projectiles
             for projectile in self.projectiles.copy(): # [[x, y], direction, timer]
                 projectile[0][0] += projectile[1]
                 projectile[2] += 1
                 img = self.assets['projectile']
-                self.display.blit(img, (projectile[0][0] - img.get_width() / 2 - render_scroll[0], projectile[0][1] - img.get_height() / 2 - render_scroll[1]))
+                self.display.blit(img, (projectile[0][0] - img.get_width() / 2 - render_scroll[0],
+                                        projectile[0][1] - img.get_height() / 2 - render_scroll[1]))
                 if self.tilemap.solid_check(projectile[0]): # Projectile strikes solid object
                     self.projectiles.remove(projectile)
                     for i in range(4):
@@ -140,11 +146,15 @@ class Game:
                     # Check whether Player is getting hit by the projectile
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
+                        self.dead += 1
                         for i in range(30):
                             angle = random.random() * math.pi * 2
                             speed = random.random() * 5
                             self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
-                            self.particles.append(Particle(self, 'particle', self.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5], frame=random.randint(0, 7)))
+                            self.particles.append(Particle(self, 'particle', self.player.rect().center,
+                                                           velocity=[math.cos(angle + math.pi) * speed * 0.5,
+                                                                     math.sin(angle + math.pi) * speed * 0.5],
+                                                           frame=random.randint(0, 7)))
 
             # Drawing sparks effects
             for spark in self.sparks.copy():

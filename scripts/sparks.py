@@ -30,9 +30,13 @@ class Spark:
         :return:
         """
         render_points = [
-            (self.position[0] + math.cos(self.angle) * self.speed * 3 - offset[0], self.position[1] + math.sin(self.angle) * self.speed * 3 - offset[1]), # Angle as is
-            (self.position[0] + math.cos(self.angle + math.pi * 0.5) * self.speed * 0.5 - offset[0], self.position[1] + math.sin(self.angle + math.pi * 0.5) * self.speed * 0.5 - offset[1]), # 90 degree
-            (self.position[0] + math.cos(self.angle + math.pi) * self.speed * 3 - offset[0], self.position[1] + math.sin(self.angle + math.pi) * self.speed * 3 - offset[1]), # 180 degree
-            (self.position[0] + math.cos(self.angle - math.pi * 0.5) * self.speed * 0.5 - offset[0], self.position[1] + math.sin(self.angle - math.pi * 0.5) * self.speed * 0.5 - offset[1]), # Technically 270 degree
+            (self.position[0] + math.cos(self.angle) * self.speed * 3 - offset[0],
+             self.position[1] + math.sin(self.angle) * self.speed * 3 - offset[1]), # Angle as is
+            (self.position[0] + math.cos(self.angle + math.pi * 0.5) * self.speed * 0.5 - offset[0],
+             self.position[1] + math.sin(self.angle + math.pi * 0.5) * self.speed * 0.5 - offset[1]), # 90 degree
+            (self.position[0] + math.cos(self.angle + math.pi) * self.speed * 3 - offset[0],
+             self.position[1] + math.sin(self.angle + math.pi) * self.speed * 3 - offset[1]), # 180 degree
+            (self.position[0] + math.cos(self.angle - math.pi * 0.5) * self.speed * 0.5 - offset[0],
+             self.position[1] + math.sin(self.angle - math.pi * 0.5) * self.speed * 0.5 - offset[1]), # Technically 270 degree
         ]
         pygame.draw.polygon(surface, (255, 255, 255), render_points)

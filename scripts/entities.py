@@ -93,7 +93,8 @@ class PhysicsEntity:
         self.animation.update()
 
     def render(self, surface, offset=(0, 0)):
-        surface.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0] + self.anim_offset[0], self.pos[1] - offset[1] - self.anim_offset[1]))
+        surface.blit(pygame.transform.flip(self.animation.img(), self.flip, False),
+                     (self.pos[0] - offset[0] + self.anim_offset[0], self.pos[1] - offset[1] - self.anim_offset[1]))
 
 class Enemy(PhysicsEntity):
     def __init__(self, game, pos, size):
@@ -161,7 +162,8 @@ class Enemy(PhysicsEntity):
         super().render(surface, offset=offset)
 
         if self.flip:
-            surface.blit(pygame.transform.flip(self.game.assets['gun'], True, False), (self.rect().centerx - 4 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery + self.game.assets['gun'].get_height() - offset[1]))
+            surface.blit(pygame.transform.flip(self.game.assets['gun'], True, False),
+                         (self.rect().centerx - 4 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery + self.game.assets['gun'].get_height() - offset[1]))
         else:
             surface.blit(self.game.assets['gun'], (self.rect().centerx + 4 - offset[0], self.rect().centery + self.game.assets['gun'].get_height() - offset[1]))
 
@@ -178,6 +180,11 @@ class Player(PhysicsEntity):
         """Update the Player's movement and sprite"""
         super().update(tilemap, movement=movement)
         self.air_time += 1
+
+        # If we're falling too far (likely off the edge of the map), die and respawn
+        if self.air_time > 120: # three seconds free fall limit
+            self.game.dead += 1
+
         if self.collisions['down']: # If we collide with the ground, air_time and jumps counter are reset
             self.air_time = 0
             self.jumps = 1
