@@ -144,6 +144,7 @@ class Enemy(PhysicsEntity):
         # Check if Enemy hurtbox collides with Player hitbox during the invincible part of the dash action
         if abs(self.game.player.dashing) >= 50:
             if self.rect().colliderect(self.game.player.rect()):
+                self.game.screenshake = max(16, self.game.screenshake)
                 for i in range(30):
                     angle = random.random() * math.pi * 2
                     speed = random.random() * 5
@@ -183,6 +184,8 @@ class Player(PhysicsEntity):
 
         # If we're falling too far (likely off the edge of the map), die and respawn
         if self.air_time > 120: # three seconds free fall limit
+            if not self.game.dead:
+                self.game.screenshake = max(16, self.game.screenshake)
             self.game.dead += 1
 
         if self.collisions['down']: # If we collide with the ground, air_time and jumps counter are reset
