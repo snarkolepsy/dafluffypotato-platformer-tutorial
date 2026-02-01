@@ -199,6 +199,7 @@ class Player(PhysicsEntity):
         self.wall_slide = False
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
             self.wall_slide = True
+            self.air_time = 4 # reset air time so we can't die during sliding
             self.velocity[1] = min(self.velocity[1], 0.5)
             # Animate in the correct direction while sliding down the wall
             if self.collisions['right']:
