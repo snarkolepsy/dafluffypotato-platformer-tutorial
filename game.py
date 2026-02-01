@@ -1,7 +1,10 @@
+import os
 import sys
 import math
 import pygame
 import random
+
+from pygame.mixer_music import set_volume
 
 from scripts.utils import load_image, load_images, Animation
 from scripts.entities import PhysicsEntity, Player, Enemy
@@ -21,7 +24,8 @@ class Game:
 
         # Set output window resolution
         self.screen = pygame.display.set_mode((640, 480))
-        self.display = pygame.Surface((320, 240))
+        self.display = pygame.Surface((320, 240), pygame.SRCALPHA)
+        self.display2 = pygame.Surface((320, 240))
 
         self.clock = pygame.time.Clock()
 
@@ -49,13 +53,28 @@ class Game:
             'projectile': load_image('projectile.png'),
         }
 
+        # Importing sound effects
+        self.sfx = {
+            'jump' : pygame.mixer.Sound('data/sfx/jump.wav'),
+            'dash' : pygame.mixer.Sound('data/sfx/dash.wav'),
+            'hit' : pygame.mixer.Sound('data/sfx/hit.wav'),
+            'shoot' : pygame.mixer.Sound('data/sfx/shoot.wav'),
+            'ambience' : pygame.mixer.Sound('data/sfx/ambience.wav'),
+        }
+        self.sfx['ambience'].set_volume(0.2)
+        self.sfx['jump'].set_volume(0.4)
+        self.sfx['dash'].set_volume(0.8)
+        self.sfx['hit'].set_volume(0.3)
+        self.sfx['shoot'].set_volume(0.7)
+
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
         self.player = Player(self, (50, 50), (8, 15))
 
         self.tilemap = Tilemap(self, tile_size=16)
 
-        self.load_level(0)
+        self.level = 0
+        self.load_level(self.level)
 
         self.screenshake = 0
 
@@ -89,18 +108,41 @@ class Game:
         self.scroll = [0, 0]
         # Handling player death
         self.dead = 0
+        # Level transition
+        self.transition = -30
+
 
     def run(self):
+        # Loading and playing background music
+        pygame.mixer.music.load('data/music.wav')
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+        # Also play the ambience sound effects
+        self.sfx['ambience'].play(-1)
+
+        # CORE GAMEPLAY LOOP
         while True:
             # Clearing the screen
-            self.display.blit(self.assets['background'], (0, 0))
+            self.display.fill((0, 0, 0, 0))
+            self.display2.blit(self.assets['background'], (0, 0))
 
             self.screenshake = max(0, self.screenshake - 1)
 
+            # Move to the next level if we've slain all foes
+            if not len(self.enemies):
+                self.transition += 1
+                if self.transition > 30:
+                    self.level = min(self.level + 1, len(os.listdir('data/maps')) - 1)
+                    self.load_level(self.level)
+            if self.transition < 0:
+                self.transition += 1
+
             if self.dead:
                 self.dead += 1
+                if self.dead >= 10:
+                    self.transition = min(30, self.transition + 1)
                 if self.dead > 40:
-                    self.load_level(0)
+                    self.load_level(self.level)
 
             # Move towards the player at a dynamic rate
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width()/2 - self.scroll[0]) / 30
@@ -117,7 +159,7 @@ class Game:
 
             # Draw the clouds before the tiles so they're in the background
             self.clouds.update()
-            self.clouds.render(self.display, offset=render_scroll)
+            self.clouds.render(self.display2, offset=render_scroll)
 
             # Rendering the tilemap behind the player
             self.tilemap.render(self.display, offset=render_scroll)
@@ -152,6 +194,7 @@ class Game:
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
                         self.dead += 1
+                        self.sfx['hit'].play()
                         self.screenshake = max(16, self.screenshake)
                         for i in range(30):
                             angle = random.random() * math.pi * 2
@@ -168,6 +211,11 @@ class Game:
                 spark.render(self.display, offset=render_scroll)
                 if kill:
                     self.sparks.remove(spark)
+
+            display_mask = pygame.mask.from_surface(self.display)
+            display_silhouette = display_mask.to_surface(setcolor=(0, 0, 0, 180), unsetcolor=(0, 0, 0, 0))
+            for offset in [(-1, 0,), (1, 0), (0, -1), (0, 1)]:
+                self.display2.blit(display_silhouette, offset)
 
             # Managing the particles system
             for particle in self.particles.copy():
@@ -190,7 +238,8 @@ class Game:
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = True
                     if event.key == pygame.K_UP:
-                        self.player.jump()
+                        if self.player.jump():
+                            self.sfx['jump'].play()
                     if event.key == pygame.K_x:
                         self.player.dash()
                 if event.type == pygame.KEYUP: # Releasing a key
@@ -199,9 +248,21 @@ class Game:
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = False
 
-            screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2)
+            # Shrinking and expanding circle for level transitions
+            if self.transition:
+                transition_surface = pygame.Surface(self.display.get_size())
+                pygame.draw.circle(transition_surface, (255, 255, 255),
+                                   (self.display.get_width() // 2, self.display.get_height() // 2),
+                                   (30 - abs(self.transition)) * 8)
+                transition_surface.set_colorkey((255, 255, 255))
+                self.display.blit(transition_surface, (0, 0))
+
+            self.display2.blit(self.display, (0, 0))
+
+            screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2,
+                                  random.random() * self.screenshake - self.screenshake / 2)
             # scaling up the display to the screen size
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset)
+            self.screen.blit(pygame.transform.scale(self.display2, self.screen.get_size()), screenshake_offset)
 
             pygame.display.update()
             self.clock.tick(60)  # ensures 60 FPS
