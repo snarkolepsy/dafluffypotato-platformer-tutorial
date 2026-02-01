@@ -16,7 +16,7 @@ class PhysicsEntity:
         self.collisions = {'up': False, 'down': False, 'right' : False, 'left' : False}
 
         self.action = ''
-        self.anim_offset = (-3, -3)
+        self.anim_offset = (-3, 3)
         self.flip = False
         self.set_action('idle')
 
@@ -121,13 +121,13 @@ class Enemy(PhysicsEntity):
                 if abs(distance[1]) < 16:
                     if (self.flip and distance[0] < 0):
                         self.game.sfx['shoot'].play()
-                        self.game.projectiles.append([[self.rect().centerx - 10, self.rect().centery + 4], -1.5, 0])
+                        self.game.projectiles.append([[self.rect().centerx - 10, self.rect().centery], -1.5, 0])
                         # Gunshots emit sparks
                         for i in range(4):
                             self.game.sparks.append(Spark(self.game.projectiles[-1][0], random.random() - 0.5 + math.pi, 2 + random.random())) # Sparks to the left, with variance
                     if (not self.flip and distance[0] > 0):
                         self.game.sfx['shoot'].play()
-                        self.game.projectiles.append([[self.rect().centerx + 10, self.rect().centery + 4], 1.5, 0])
+                        self.game.projectiles.append([[self.rect().centerx + 10, self.rect().centery], 1.5, 0])
                         # Gunshots emit sparks
                         for i in range(4):
                             self.game.sparks.append(Spark(self.game.projectiles[-1][0], random.random() - 0.5, 2 + random.random())) # Sparks to the right, with random variants
@@ -167,9 +167,9 @@ class Enemy(PhysicsEntity):
 
         if self.flip:
             surface.blit(pygame.transform.flip(self.game.assets['gun'], True, False),
-                         (self.rect().centerx - 4 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery + self.game.assets['gun'].get_height() - offset[1]))
+                         (self.rect().centerx - 4 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery - offset[1]))
         else:
-            surface.blit(self.game.assets['gun'], (self.rect().centerx + 4 - offset[0], self.rect().centery + self.game.assets['gun'].get_height() - offset[1]))
+            surface.blit(self.game.assets['gun'], (self.rect().centerx + 4 - offset[0], self.rect().centery - offset[1]))
 
 class Player(PhysicsEntity):
     def __init__(self, game, pos, size):
